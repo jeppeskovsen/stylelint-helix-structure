@@ -32,7 +32,7 @@ export default function (enabled, options) {
   return (root, result) => {
     options = options || {}
 
-    const basePath = options.basePath || process.cwd()
+    const basePath = options.basePath || path.join(process.cwd(), "./src")
     const absoluteBasePath = path.resolve(basePath)
 
     function checkForImportStatement(atRule) {
