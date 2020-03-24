@@ -8,7 +8,7 @@
     "pretest": "npm run build",
     "test": "jest",
     "build": "babel ./src --out-dir ./lib --extensions .ts",
-    "publish": "npm run typecheck && npm run build && npm test && npm publish",
+    "release": "npm run typecheck && npm run build && npm test && npm publish",
     "typecheck": "tsc"
   },
   "repository": {
