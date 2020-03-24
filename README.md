@@ -1,1 +1,1 @@
-# stylelint-helix-structure
+# styleint-scss-helix-structure

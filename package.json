@@ -1,0 +1,47 @@
+{
+  "name": "stylelint-scss-helix-structure",
+  "version": "1.0.0",
+  "description": "Stylelint rules for helix structure",
+  "main": "lib/index.js",
+  "scripts": {
+    "prebuild": "rimraf lib",
+    "pretest": "npm run build",
+    "test": "jest",
+    "build": "babel ./src --out-dir ./lib --extensions .ts",
+    "publish": "npm run typecheck && npm run build && npm test && npm publish",
+    "typecheck": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeppeskovsen/stylelint-scss-helix-structure.git"
+  },
+  "author": "Jeppe Skovsen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jeppeskovsen/stylelint-scss-helix-structure/issues"
+  },
+  "homepage": "https://github.com/jeppeskovsen/stylelint-scss-helix-structure#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
+    "@babel/preset-typescript": "^7.8.3",
+    "babel-jest": "^25.1.0",
+    "jest": "^25.1.0",
+    "resolve": "^1.15.1",
+    "rimraf": "^3.0.2",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@types/jest": "^25.1.4",
+    "@types/lodash": "^4.14.149",
+    "@types/node": "^13.9.1",
+    "@types/stylelint": "^9.10.1",
+    "chai": "^4.2.0",
+    "crypto": "^1.0.1",
+    "debug": "^4.1.1",
+    "lodash": "^4.17.15",
+    "stylelint": "^13.2.1"
+  }
+}
