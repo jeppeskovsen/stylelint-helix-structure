@@ -2,86 +2,76 @@ import path from "path"
 import stylelint, { utils } from "stylelint"
 import { namespace } from "../utils/namespace"
 import { getLayerAndModuleName } from "../utils/helix"
+import resolve from "../utils/resolve"
 
 const ruleToCheckAgainst = "restricted-imports"
 export const ruleName = namespace(ruleToCheckAgainst)
 
 export const messages = utils.ruleMessages(ruleName, {
-  useRelativeImports({ importPath, moduleName}) {
-    return `Unexpected path "${importPath}", use relative import paths within the same module (${moduleName}).`
+  featureIntoFeature({ importPath, currentLayerName, importLayerName }) {
+    return `Unexpected path '${importPath}'. Cannot import ${currentLayerName} into a another ${importLayerName}.`
   },
-  useTildeImports({ importPath, importLayerName, currentLayerName}) {
-    return `Unexpected path "${importPath}", use tilde (~/${importLayerName}) import paths when it's from a different layer than ${currentLayerName}.`
+  projectIntoFeature({ importPath, importLayerName, currentLayerName }) {
+    return `Unexpected path '${importPath}'. Cannot import ${importLayerName} into a ${currentLayerName}.`
+  },
+  featureOrProjectIntoFoundation({ importPath, importLayerName, currentLayerName}) {
+    return `Unexpected path '${importPath}'. Cannot import ${importLayerName} into ${currentLayerName}.`
   }
 })
 
-function resolve(importPath: string, basePath: string, currentFileFolder: string): string {
-  if (importPath.startsWith("~/")) {
-    return path.join(basePath, importPath.substring(2));
+
+
+export default function (enabled, options) {
+  if (!enabled) {
+    return
   }
 
-  return path.join(currentFileFolder, importPath);
-}
-
-export default function (primaryOption, secondaryOptions) {
   return (root, result) => {
-    const options = primaryOption || {};
+    options = options || {}
 
-    const validOptions = utils.validateOptions(result, ruleName, {
-      actual: options
-    })
-
-    if (!validOptions) {
-      return
-    }
-
-    const basePath = options.basePath || process.cwd();
-    const absoluteBasePath = path.resolve(basePath);
+    const basePath = options.basePath || process.cwd()
+    const absoluteBasePath = path.resolve(basePath)
 
     function checkForImportStatement(atRule) {
-      if (atRule.name !== "import") return;
+      if (atRule.name !== "import") return
 
-      const importPath = atRule.params.replace(/'|"/g, "");
-      let fileName = "";
-      let importPathParts = [];
+      const importPath = atRule.params.replace(/'|"/g, "")
+      const absoluteCurrentFile = atRule.source.input.file
+      if (!absoluteCurrentFile) return
 
-      if (importPath.indexOf("/") > -1) {
-        importPathParts = importPath.split("/");
-        fileName = importPathParts[importPathParts.length - 1];
-      } else {
-        fileName = importPath;
-      }
+      const absoluteImportFile = resolve(ruleName, result, atRule, importPath, absoluteCurrentFile)
 
-      const absoluteCurrentFile = atRule.source.input.file;
-      const absoluteImportFile = resolve(importPath, absoluteBasePath, path.dirname(absoluteCurrentFile));
+      const [currentLayerName, currentModuleName] = getLayerAndModuleName(absoluteCurrentFile, absoluteBasePath)
+      if (!currentLayerName || !currentModuleName) return
 
-      const [currentLayerName, currentModuleName] = getLayerAndModuleName(absoluteCurrentFile, absoluteBasePath);
-      if (!currentLayerName || !currentModuleName) return;
+      const [importLayerName, importModuleName] = getLayerAndModuleName(absoluteImportFile, absoluteBasePath)
+      if (!importLayerName || !importModuleName) return
 
-      const [importLayerName, importModuleName] = getLayerAndModuleName(absoluteImportFile, absoluteBasePath);
-      if (!importLayerName || !importModuleName) return;
-
-      if (currentLayerName === importLayerName && currentModuleName === importModuleName) {
-
-        if (importPath.startsWith("~/")) {
-          stylelint.utils.report({
-            ruleName,
-            result,
-            node: atRule,
-            message: messages.useRelativeImports({ importPath, moduleName: currentModuleName })
-          });
-        }
-
-        return;
-      }
-
-      if (!importPath.startsWith("~/")) {
+      if (currentLayerName === "feature" && importLayerName === "feature" && currentModuleName !== importModuleName) {
         stylelint.utils.report({
           ruleName,
           result,
           node: atRule,
-          message: messages.useTildeImports({ importPath, importLayerName, currentLayerName })
-        });
+          message: messages.featureIntoFeature({ importPath, currentLayerName, importLayerName })
+        })
+      }
+
+      if (currentLayerName === "feature" && importLayerName === "project") {
+        stylelint.utils.report({
+          ruleName,
+          result,
+          node: atRule,
+          message: messages.projectIntoFeature({ importPath, currentLayerName, importLayerName })
+        })
+      }
+
+      if (currentLayerName === "foundation" && importLayerName === "feature" || importLayerName === "project") {
+        stylelint.utils.report({
+          ruleName,
+          result,
+          node: atRule,
+          message: messages.featureOrProjectIntoFoundation({ importPath, currentLayerName, importLayerName })
+        })
       }
     }
 

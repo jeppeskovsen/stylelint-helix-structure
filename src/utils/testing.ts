@@ -84,8 +84,9 @@ export const testRule = (testSchema: CustomRuleTesterSchema) => {
           const spec = testCase.only ? it.only : it;
   
           spec(testCase.description || "no description", () => {
-            const options = {
+            const options: Partial<LinterOptions> = {
               code: testCase.code,
+              codeFilename: testCase.codeFilename,
               config: stylelintConfig,
               syntax: schema.syntax
             }
@@ -95,8 +96,7 @@ export const testRule = (testSchema: CustomRuleTesterSchema) => {
               const warning = warnings[0]
   
               expect(warnings.length).toBeGreaterThanOrEqual(1)
-              // expect(testCase).toHaveMessage();
-  
+
               if (testCase.message !== undefined) {
                 expect(_.get(warning, "text")).toBe(testCase.message)
               }
