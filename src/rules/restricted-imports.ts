@@ -8,14 +8,20 @@ const ruleToCheckAgainst = "restricted-imports"
 export const ruleName = namespace(ruleToCheckAgainst)
 
 export const messages = utils.ruleMessages(ruleName, {
-  featureIntoFeature({ importPath, currentLayerName, importLayerName }) {
-    return `Unexpected path '${importPath}'. Cannot import ${currentLayerName} into a another ${importLayerName}.`
+  featureIntoFeature({ importPath }) {
+    return `Unexpected path '${importPath}'. Cannot import Feature into another Feature.`
   },
-  projectIntoFeature({ importPath, importLayerName, currentLayerName }) {
-    return `Unexpected path '${importPath}'. Cannot import ${importLayerName} into a ${currentLayerName}.`
+  projectIntoFeature({ importPath }) {
+    return `Unexpected path '${importPath}'. Cannot import Project into a Feature.`
   },
-  featureOrProjectIntoFoundation({ importPath, importLayerName, currentLayerName}) {
-    return `Unexpected path '${importPath}'. Cannot import ${importLayerName} into ${currentLayerName}.`
+  featureIntoFoundation({ importPath }) {
+    return `Unexpected path '${importPath}'. Cannot import Feature into Foundation.`
+  },
+  projectIntoFoundation({ importPath }) {
+    return `Unexpected path '${importPath}'. Cannot import Project into Foundation.`
+  },
+  projectIntoProject({ importPath }) {
+    return `Unexpected path '${importPath}'. Cannot import Project into another Project.`
   }
 })
 
@@ -52,7 +58,7 @@ export default function (enabled, options) {
           ruleName,
           result,
           node: atRule,
-          message: messages.featureIntoFeature({ importPath, currentLayerName, importLayerName })
+          message: messages.featureIntoFeature({ importPath })
         })
       }
 
@@ -61,16 +67,34 @@ export default function (enabled, options) {
           ruleName,
           result,
           node: atRule,
-          message: messages.projectIntoFeature({ importPath, currentLayerName, importLayerName })
+          message: messages.projectIntoFeature({ importPath })
         })
       }
 
-      if (currentLayerName === "foundation" && importLayerName === "feature" || importLayerName === "project") {
+      if (currentLayerName === "foundation" && importLayerName === "feature") {
         stylelint.utils.report({
           ruleName,
           result,
           node: atRule,
-          message: messages.featureOrProjectIntoFoundation({ importPath, currentLayerName, importLayerName })
+          message: messages.featureIntoFoundation({ importPath })
+        })
+      }
+
+      if (currentLayerName === "foundation" && importLayerName === "project") {
+        stylelint.utils.report({
+          ruleName,
+          result,
+          node: atRule,
+          message: messages.projectIntoFoundation({ importPath })
+        })
+      }
+
+      if (currentLayerName === "project" && importLayerName === "project" && currentModuleName !== importModuleName) {
+        stylelint.utils.report({
+          ruleName,
+          result,
+          node: atRule,
+          message: messages.projectIntoProject({ importPath })
         })
       }
     }
