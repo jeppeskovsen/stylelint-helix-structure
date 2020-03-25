@@ -1,13 +1,13 @@
 import path from "path"
-import stylelint, { utils } from "stylelint"
+import stylelint, { Plugin } from "stylelint"
 import { namespace } from "../utils/namespace"
 import { getLayerAndModuleName } from "../utils/helix"
-//import resolve from "../utils/resolve"
+import { relativeToTilde, tildeToRelative, getAbsolutePath } from "../utils/path-fixer"
 
 const ruleToCheckAgainst = "restricted-tilde-imports"
 export const ruleName = namespace(ruleToCheckAgainst)
 
-export const messages = utils.ruleMessages(ruleName, {
+export const messages = stylelint.utils.ruleMessages(ruleName, {
   useRelativeImports({ importPath, moduleName}) {
     return `Unexpected path "${importPath}", use relative import paths within the same module (${moduleName}).`
   },
@@ -16,24 +16,32 @@ export const messages = utils.ruleMessages(ruleName, {
   }
 })
 
-function resolve(importPath: string, basePath: string, currentFileFolder: string): string {
-  if (importPath.startsWith("~/")) {
-    return path.join(basePath, importPath.substring(2));
-  }
-
-  return path.join(currentFileFolder, importPath);
-}
-
-export default function (enabled, options) {
+const plugin: Plugin = (enabled: any, options: any, context: any = null) => {
   if (!enabled) {
     return
   }
+
+  const shouldFix = context.fix && (!options || options.disableFix !== true);
 
   return (root, result) => {
     options = options || {}
 
     const basePath = options.basePath || path.join(process.cwd(), "./src")
     const absoluteBasePath = path.resolve(basePath)
+
+    function complain(node, message, fixValue: string): void {
+      if (shouldFix) {
+        node.params = `"${fixValue}"`
+        return
+      }
+
+      stylelint.utils.report({
+        ruleName,
+        result,
+        node,
+        message
+      })
+    }
 
     function checkForImportStatement(atRule) {
       if (atRule.name !== "import") return
@@ -42,8 +50,8 @@ export default function (enabled, options) {
       const absoluteCurrentFile = atRule.source.input.file
       if (!absoluteCurrentFile) return
 
-      // const absoluteImportFile = resolve(ruleName, result, atRule, importPath, absoluteCurrentFile)
-      const absoluteImportFile = resolve(importPath, absoluteBasePath, path.dirname(absoluteCurrentFile))
+      const absoluteCurrentPath = path.dirname(absoluteCurrentFile)
+      const absoluteImportFile = getAbsolutePath(absoluteBasePath, absoluteCurrentPath, importPath)
 
       const [currentLayerName, currentModuleName] = getLayerAndModuleName(absoluteCurrentFile, absoluteBasePath)
       if (!currentLayerName || !currentModuleName) return
@@ -55,27 +63,19 @@ export default function (enabled, options) {
       if (currentLayerName === importLayerName && currentModuleName === importModuleName) {
 
         if (importPath.startsWith("~/")) {
-          stylelint.utils.report({
-            ruleName,
-            result,
-            node: atRule,
-            message: messages.useRelativeImports({ importPath, moduleName: currentModuleName })
-          })
+          complain(atRule, messages.useRelativeImports({ importPath, moduleName: currentModuleName }), tildeToRelative(absoluteBasePath, absoluteCurrentPath, importPath))
         }
 
         return
       }
 
       if (!importPath.startsWith("~/")) {
-        stylelint.utils.report({
-          ruleName,
-          result,
-          node: atRule,
-          message: messages.useTildeImports({ importPath, importLayerName, currentLayerName })
-        })
+        complain(atRule, messages.useTildeImports({ importPath, importLayerName, currentLayerName }), relativeToTilde(absoluteBasePath, absoluteCurrentPath, importPath))
       }
     }
 
     root.walkAtRules(checkForImportStatement);
   }
 }
+
+export default plugin

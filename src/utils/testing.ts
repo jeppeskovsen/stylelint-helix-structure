@@ -7,11 +7,13 @@ interface CustomRuleTesterTest extends RuleTesterTest {
 }
 
 interface CustomRuleTesterTestRejected extends RuleTesterTestRejected, CustomRuleTesterTest {
+  fixed?: string
 }
 
 interface CustomRuleTesterSchema extends RuleTesterSchema {
   accept?: CustomRuleTesterTest[]
   reject?: CustomRuleTesterTestRejected[]
+  fix?: boolean
 }
 
 export const testRule = (testSchema: CustomRuleTesterSchema) => {
@@ -20,21 +22,6 @@ export const testRule = (testSchema: CustomRuleTesterSchema) => {
     syntax: "scss",
     ...testSchema
   }
-  // expect.extend({
-  //   toHaveMessage(testCase) {
-  //     if (testCase.message === undefined) {
-  //       return {
-  //         message: () =>
-  //           'Expected "reject" test case to have a "message" property',
-  //         pass: false
-  //       };
-  //     }
-
-  //     return {
-  //       pass: true
-  //     };
-  //   }
-  // })
 
   describe(`${schema.ruleName}`, () => {
     const stylelintConfig: Partial<Configuration> = {
@@ -47,9 +34,7 @@ export const testRule = (testSchema: CustomRuleTesterSchema) => {
     if (schema.accept && schema.accept.length) {
       describe("accept", () => {
         schema.accept.forEach(testCase => {
-          const spec = (testCase as any).only ? it.only : it
-  
-          spec(testCase.description || "no description", () => {
+          it(testCase.description || "no description", () => {
             const options: Partial<LinterOptions> = {
               code: testCase.code,
               codeFilename: testCase.codeFilename,
@@ -60,7 +45,7 @@ export const testRule = (testSchema: CustomRuleTesterSchema) => {
             return stylelint.lint(options).then(output => {
               expect(output.results[0].warnings).toEqual([])
   
-              if (!(schema as any).fix) {
+              if (!schema.fix) {
                 return
               }
   
@@ -109,11 +94,11 @@ export const testRule = (testSchema: CustomRuleTesterSchema) => {
                 expect(_.get(warning, "column")).toBe(testCase.column)
               }
   
-              if (!(schema as any).fix) {
+              if (!schema.fix) {
                 return
               }
   
-              if (!(testCase as any).fixed) {
+              if (!testCase.fixed) {
                 throw new Error("If using { fix: true } in test schema, all reject cases must have { fixed: .. }")
               }
   
@@ -122,7 +107,7 @@ export const testRule = (testSchema: CustomRuleTesterSchema) => {
                 .lint(Object.assign({ fix: true }, options))
                 .then(output2 => {
                   const fixedCode = getOutputCss(output2)
-                  expect(fixedCode).toBe((testCase as any).fixed)
+                  expect(fixedCode).toBe(testCase.fixed)
                 })
             })
           })
