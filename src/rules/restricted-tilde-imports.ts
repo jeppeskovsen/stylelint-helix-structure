@@ -44,7 +44,7 @@ const plugin: Plugin = (enabled: any, options: RuleOptions, context: any = null)
       if (!absoluteCurrentFile) return
 
       const absoluteCurrentPath = path.dirname(absoluteCurrentFile)
-      const absoluteImportFile = resolve(absoluteBasePath, absoluteCurrentPath, alias, importPath, true)
+      const absoluteImportFile = resolve(absoluteBasePath, absoluteCurrentPath, alias, importPath).path
 
       const [currentLayerName, currentModuleName] = getLayerAndModuleName(absoluteCurrentFile, absoluteBasePath)
       if (!currentLayerName || !currentModuleName) return
@@ -54,8 +54,7 @@ const plugin: Plugin = (enabled: any, options: RuleOptions, context: any = null)
 
       function complain(message, fixValue: string): void {
         if (shouldFix) {
-          const resolvedPath = resolve(absoluteBasePath, absoluteCurrentPath, alias, fixValue)
-          shouldFix = resolvedPath !== null
+          shouldFix = resolve(absoluteBasePath, absoluteCurrentPath, alias, fixValue).found
 
           if (shouldFix) {
             atRule.params = `"${fixValue}"`

@@ -1,3 +1,4 @@
+import path from "path"
 import { testRule } from "../utils/testing"
 import { ruleName, messages } from "./restricted-imports"
 
@@ -94,7 +95,8 @@ testRule({
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
       description: "Import non existing file",
       message: messages.noUnresolvedImports({ 
-        importPath: "../../foundation/NotExists"
+        importPath: "../../foundation/NotExists",
+        absolutePath: path.resolve(__dirname, "../../", "tests/files/foundation/NotExists")
       }),
       line: 1,
       column: 1

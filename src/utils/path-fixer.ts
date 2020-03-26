@@ -66,15 +66,15 @@ export function resolveAliasPath(absoluteBasePath: string, alias: {[key: string]
   return null
 }
 
-export function resolve(absoluteBasePath: string, absoluteCurrentPath: string, alias: {[key: string]: string}, pathToResolve: string, returnPath: boolean = false): string {
+export function resolve(absoluteBasePath: string, absoluteCurrentPath: string, alias: {[key: string]: string}, pathToResolve: string): { path: string, found: boolean } {
   let resolvedPath = resolveAliasPath(absoluteBasePath, alias, pathToResolve)
   if (!resolvedPath) {
     resolvedPath = getAbsolutePath(absoluteBasePath, absoluteCurrentPath, pathToResolve)
   }
 
   if (fs.existsSync(resolvedPath) || fs.existsSync(`${resolvedPath}.scss`)) {
-    return resolvedPath;
+    return { path: resolvedPath, found: true}
   }
 
-  return returnPath ? resolvedPath : null
+  return { path: resolvedPath, found: false }
 }
