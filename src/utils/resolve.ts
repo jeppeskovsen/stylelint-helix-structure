@@ -21,7 +21,7 @@ function fileResolver(source, file, config = undefined) {
     log("Resolved to:", resolvedPath)
     return { found: true, path: resolvedPath }
   } catch (err) {
-    console.log(ERROR_NAME, "Resolve threw error:", err)
+    log(ERROR_NAME, "Resolve threw error:", err)
     return { found: false }
   }
 }

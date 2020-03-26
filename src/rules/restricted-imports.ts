@@ -1,5 +1,5 @@
 import path from "path"
-import stylelint, { utils } from "stylelint"
+import stylelint, { Plugin } from "stylelint"
 import { namespace } from "../utils/namespace"
 import { getLayerAndModuleName } from "../utils/helix"
 import resolve from "../utils/resolve"
@@ -7,7 +7,7 @@ import resolve from "../utils/resolve"
 const ruleToCheckAgainst = "restricted-imports"
 export const ruleName = namespace(ruleToCheckAgainst)
 
-export const messages = utils.ruleMessages(ruleName, {
+export const messages = stylelint.utils.ruleMessages(ruleName, {
   featureIntoFeature({ importPath }) {
     return `Unexpected path '${importPath}'. Cannot import Feature into another Feature.`
   },
@@ -25,9 +25,11 @@ export const messages = utils.ruleMessages(ruleName, {
   }
 })
 
+interface RuleOptions {
+  basePath?: string
+}
 
-
-export default function (enabled, options) {
+const plugin: Plugin = (enabled: any, options: RuleOptions) => {
   if (!enabled) {
     return
   }
@@ -99,6 +101,8 @@ export default function (enabled, options) {
       }
     }
 
-    root.walkAtRules(checkForImportStatement);
+    root.walkAtRules(checkForImportStatement)
   }
 }
+
+export default plugin

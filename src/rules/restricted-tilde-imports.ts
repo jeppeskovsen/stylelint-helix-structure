@@ -3,6 +3,7 @@ import stylelint, { Plugin } from "stylelint"
 import { namespace } from "../utils/namespace"
 import { getLayerAndModuleName } from "../utils/helix"
 import { relativeToTilde, tildeToRelative, getAbsolutePath } from "../utils/path-fixer"
+import resolve from "../utils/resolve"
 
 const ruleToCheckAgainst = "restricted-tilde-imports"
 export const ruleName = namespace(ruleToCheckAgainst)
@@ -16,32 +17,23 @@ export const messages = stylelint.utils.ruleMessages(ruleName, {
   }
 })
 
-const plugin: Plugin = (enabled: any, options: any, context: any = null) => {
+interface RuleOptions {
+  basePath?: string
+  ignoreFix?: boolean
+}
+
+const plugin: Plugin = (enabled: any, options: RuleOptions, context: any = null) => {
   if (!enabled) {
     return
   }
 
-  const shouldFix = context.fix && (!options || options.disableFix !== true);
+  let shouldFix = context.fix && (!options || options.ignoreFix !== true)
 
   return (root, result) => {
     options = options || {}
 
     const basePath = options.basePath || path.join(process.cwd(), "./src")
     const absoluteBasePath = path.resolve(basePath)
-
-    function complain(node, message, fixValue: string): void {
-      if (shouldFix) {
-        node.params = `"${fixValue}"`
-        return
-      }
-
-      stylelint.utils.report({
-        ruleName,
-        result,
-        node,
-        message
-      })
-    }
 
     function checkForImportStatement(atRule) {
       if (atRule.name !== "import") return
@@ -60,21 +52,46 @@ const plugin: Plugin = (enabled: any, options: any, context: any = null) => {
       if (!importLayerName || !importModuleName) return
 
 
+      function complain(message, fixValue: string): void {
+        if (shouldFix) {
+          if (fixValue.startsWith("~")) {
+            const resolvedPath = resolve(ruleName, result, atRule, importPath, absoluteCurrentFile)
+            shouldFix = typeof resolvedPath !== "undefined"
+          } else {
+            const resolvedPath = resolve(ruleName, result, atRule, fixValue, absoluteCurrentFile)
+            shouldFix = typeof resolvedPath !== "undefined"
+          }
+
+          if (shouldFix) {
+            atRule.params = `"${fixValue}"`
+            return
+          }
+        }
+  
+        stylelint.utils.report({
+          ruleName,
+          result,
+          node: atRule,
+          message
+        })
+      }
+
+
       if (currentLayerName === importLayerName && currentModuleName === importModuleName) {
 
         if (importPath.startsWith("~/")) {
-          complain(atRule, messages.useRelativeImports({ importPath, moduleName: currentModuleName }), tildeToRelative(absoluteBasePath, absoluteCurrentPath, importPath))
+          complain(messages.useRelativeImports({ importPath, moduleName: currentModuleName }), tildeToRelative(absoluteBasePath, absoluteCurrentPath, importPath))
         }
 
         return
       }
 
       if (!importPath.startsWith("~/")) {
-        complain(atRule, messages.useTildeImports({ importPath, importLayerName, currentLayerName }), relativeToTilde(absoluteBasePath, absoluteCurrentPath, importPath))
+        complain(messages.useTildeImports({ importPath, importLayerName, currentLayerName }), relativeToTilde(absoluteBasePath, absoluteCurrentPath, importPath))
       }
     }
 
-    root.walkAtRules(checkForImportStatement);
+    root.walkAtRules(checkForImportStatement)
   }
 }
 
