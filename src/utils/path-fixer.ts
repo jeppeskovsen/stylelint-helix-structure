@@ -1,4 +1,5 @@
 import path from "path"
+import fs from "fs"
 
 export function relativeToTilde(absoluteBasePath: string, absoluteCurrentPath: string, importPath: string): string {
   if (importPath.startsWith("~")) {
@@ -44,4 +45,36 @@ export function getAbsolutePath(absoluteBasePath: string, absoluteCurrentPath: s
   }
 
   return path.normalize(absolutePath)
+}
+
+export function resolveAliasPath(absoluteBasePath: string, alias: {[key: string]: string}, pathToResolve: string): string {
+  if (!alias) {
+    return null
+  }
+
+  for (const key of Object.keys(alias)) {
+    if (pathToResolve.startsWith(key)) {
+      let aliasPath = alias[key]
+      if (!path.isAbsolute(aliasPath)) {
+        aliasPath = path.join(absoluteBasePath, aliasPath)
+      }
+
+      return path.join(aliasPath, pathToResolve.substring(key.length))
+    }
+  }
+
+  return null
+}
+
+export function resolve(absoluteBasePath: string, absoluteCurrentPath: string, alias: {[key: string]: string}, pathToResolve: string, returnPath: boolean = false): string {
+  let resolvedPath = resolveAliasPath(absoluteBasePath, alias, pathToResolve)
+  if (!resolvedPath) {
+    resolvedPath = getAbsolutePath(absoluteBasePath, absoluteCurrentPath, pathToResolve)
+  }
+
+  if (fs.existsSync(resolvedPath) || fs.existsSync(`${resolvedPath}.scss`)) {
+    return resolvedPath;
+  }
+
+  return returnPath ? resolvedPath : null
 }

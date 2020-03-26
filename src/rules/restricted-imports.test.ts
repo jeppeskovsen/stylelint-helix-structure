@@ -9,32 +9,32 @@ testRule({
     {
       code: `@import "../../foundation/BaseBanner"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Should work"
+      description: "Import foundation from feature"
     },
     {
       code: `@import "../../foundation/Utils"`,
       codeFilename: "./tests/files/foundation/BaseBanner/index.scss",
-      description: "Should work"
+      description: "Import foundation from foundation"
     },
     {
       code: `@import "../../foundation/Utils"`,
       codeFilename: "./tests/files/project/Stylelint/index.scss",
-      description: "Should work"
+      description: "Import foundation from project"
     },
     {
       code: `@import "../../feature/SuperBanner"`,
       codeFilename: "./tests/files/project/Stylelint/index.scss",
-      description: "Should work"
+      description: "Import feature from project"
     },
     {
       code: `@import "./Subfolder/Subfile"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Should work"
+      description: "Import from feature same feature"
     },
     {
       code: `@import "./Subfolder/Subfile"`,
       codeFilename: "./tests/files/project/Stylelint/index.scss",
-      description: "Should work"
+      description: "Import from same project"
     },
   ],
 
@@ -42,7 +42,7 @@ testRule({
     {
       code: `@import "../SuperBanner"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Should not work",
+      description: "Import from another feature",
       message: messages.featureIntoFeature({ 
         importPath: "../SuperBanner"
       }),
@@ -52,7 +52,7 @@ testRule({
     {
       code: `@import "../../feature/SuperBanner"`,
       codeFilename: "./tests/files/foundation/BaseBanner/index.scss",
-      description: "Should not work",
+      description: "Import feature from foundation",
       message: messages.featureIntoFoundation({ 
         importPath: "../../feature/SuperBanner"
       }),
@@ -62,7 +62,7 @@ testRule({
     {
       code: `@import "../../project/Stylelint"`,
       codeFilename: "./tests/files/foundation/BaseBanner/index.scss",
-      description: "Should not work",
+      description: "Import project from foundation",
       message: messages.projectIntoFoundation({ 
         importPath: "../../project/Stylelint"
       }),
@@ -72,7 +72,7 @@ testRule({
     {
       code: `@import "../../project/Stylelint"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Should not work",
+      description: "Import project from feature",
       message: messages.projectIntoFeature({ 
         importPath: "../../project/Stylelint"
       }),
@@ -82,7 +82,7 @@ testRule({
     {
       code: `@import "../../project/Other"`,
       codeFilename: "./tests/files/project/Stylelint/index.scss",
-      description: "Should not work",
+      description: "Import from another project",
       message: messages.projectIntoProject({ 
         importPath: "../../project/Other"
       }),
@@ -92,7 +92,7 @@ testRule({
     {
       code: `@import "../../foundation/NotExists"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Should not work",
+      description: "Import non existing file",
       message: messages.noUnresolvedImports({ 
         importPath: "../../foundation/NotExists"
       }),

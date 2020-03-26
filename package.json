@@ -1,6 +1,6 @@
 {
   "name": "stylelint-scss-helix-structure",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Stylelint rules for helix structure",
   "main": "lib/index.js",
   "scripts": {

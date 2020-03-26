@@ -2,7 +2,7 @@ import path from "path"
 import stylelint, { Plugin } from "stylelint"
 import { namespace } from "../utils/namespace"
 import { getLayerAndModuleName } from "../utils/helix"
-import resolve from "../utils/resolve"
+import { resolve, getAbsolutePath } from "../utils/path-fixer"
 
 const ruleToCheckAgainst = "restricted-imports"
 export const ruleName = namespace(ruleToCheckAgainst)
@@ -30,6 +30,7 @@ export const messages = stylelint.utils.ruleMessages(ruleName, {
 
 interface RuleOptions {
   basePath?: string
+  alias?: {[key: string]: string}
 }
 
 const plugin: Plugin = (enabled: any, options: RuleOptions) => {
@@ -49,8 +50,10 @@ const plugin: Plugin = (enabled: any, options: RuleOptions) => {
       const importPath = atRule.params.replace(/'|"/g, "")
       const absoluteCurrentFile = atRule.source.input.file
       if (!absoluteCurrentFile) return
+      
+      const absoluteCurrentPath = path.dirname(absoluteCurrentFile)
+      const absoluteImportFile = resolve(absoluteBasePath, absoluteCurrentPath, options.alias, importPath)
 
-      const absoluteImportFile = resolve(ruleName, result, atRule, importPath, absoluteCurrentFile)
       if (!absoluteImportFile) {
         stylelint.utils.report({
           ruleName,

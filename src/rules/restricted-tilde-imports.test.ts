@@ -3,19 +3,21 @@ import { ruleName, messages } from "./restricted-tilde-imports"
 
 testRule({
   ruleName,
-  config: [true, { basePath: "./tests/files" }],
+  config: [true, { 
+    basePath: "./tests/files",
+  }],
   fix: true,
   
   accept: [
     {
       code: `@import "~/foundation/BaseBanner"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Should work"
+      description: "Tilde import foundation to feature"
     },
     {
       code: `@import "./Subfolder/Subfile"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Should work"
+      description: "Relative import from same feature"
     }
   ],
 
@@ -24,7 +26,7 @@ testRule({
       code: `@import "~/feature/AwesomeBanner/Subfolder/Subfile"`,
       fixed: `@import "./Subfolder/Subfile"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Should not work",
+      description: "Tilde import to same feature",
       message: messages.useRelativeImports({ 
         importPath: "~/feature/AwesomeBanner/Subfolder/Subfile",
         moduleName: "awesomebanner"
@@ -36,7 +38,7 @@ testRule({
       code: `@import "../../foundation/BaseBanner"`,
       fixed: `@import "~/foundation/BaseBanner"`,
       codeFilename: "./tests/files/feature/SuperBanner/index.scss",
-      description: "Should not work",
+      description: "Relative import foundation to feature",
       message: messages.useTildeImports({ 
         importPath: "../../foundation/BaseBanner",
         importLayerName: "foundation",
@@ -50,7 +52,7 @@ testRule({
       code: `@import "~/feature/AwesomeBanner/NotExist"`,
       fixed: `@import "~/feature/AwesomeBanner/NotExist"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Should not work",
+      description: "Tilde import non existing file",
       message: messages.useRelativeImports({ 
         importPath: "~/feature/AwesomeBanner/NotExist",
         moduleName: "awesomebanner"
@@ -62,7 +64,7 @@ testRule({
       code: `@import "../../foundation/NotExist"`,
       fixed: `@import "../../foundation/NotExist"`,
       codeFilename: "./tests/files/feature/SuperBanner/index.scss",
-      description: "Should not work",
+      description: "Relative import non existing file",
       message: messages.useTildeImports({ 
         importPath: "../../foundation/NotExist",
         importLayerName: "foundation",

@@ -2,8 +2,7 @@ import path from "path"
 import stylelint, { Plugin } from "stylelint"
 import { namespace } from "../utils/namespace"
 import { getLayerAndModuleName } from "../utils/helix"
-import { relativeToTilde, tildeToRelative, getAbsolutePath } from "../utils/path-fixer"
-import resolve from "../utils/resolve"
+import { relativeToTilde, tildeToRelative, getAbsolutePath, resolve } from "../utils/path-fixer"
 
 const ruleToCheckAgainst = "restricted-tilde-imports"
 export const ruleName = namespace(ruleToCheckAgainst)
@@ -20,6 +19,7 @@ export const messages = stylelint.utils.ruleMessages(ruleName, {
 interface RuleOptions {
   basePath?: string
   ignoreFix?: boolean
+  alias?: {[key: string]: string}
 }
 
 const plugin: Plugin = (enabled: any, options: RuleOptions, context: any = null) => {
@@ -33,6 +33,7 @@ const plugin: Plugin = (enabled: any, options: RuleOptions, context: any = null)
     options = options || {}
 
     const basePath = options.basePath || path.join(process.cwd(), "./src")
+    const alias = options.alias || { "~": "./" }
     const absoluteBasePath = path.resolve(basePath)
 
     function checkForImportStatement(atRule) {
@@ -43,7 +44,7 @@ const plugin: Plugin = (enabled: any, options: RuleOptions, context: any = null)
       if (!absoluteCurrentFile) return
 
       const absoluteCurrentPath = path.dirname(absoluteCurrentFile)
-      const absoluteImportFile = getAbsolutePath(absoluteBasePath, absoluteCurrentPath, importPath)
+      const absoluteImportFile = resolve(absoluteBasePath, absoluteCurrentPath, alias, importPath, true)
 
       const [currentLayerName, currentModuleName] = getLayerAndModuleName(absoluteCurrentFile, absoluteBasePath)
       if (!currentLayerName || !currentModuleName) return
@@ -51,16 +52,10 @@ const plugin: Plugin = (enabled: any, options: RuleOptions, context: any = null)
       const [importLayerName, importModuleName] = getLayerAndModuleName(absoluteImportFile, absoluteBasePath)
       if (!importLayerName || !importModuleName) return
 
-
       function complain(message, fixValue: string): void {
         if (shouldFix) {
-          if (fixValue.startsWith("~")) {
-            const resolvedPath = resolve(ruleName, result, atRule, importPath, absoluteCurrentFile)
-            shouldFix = typeof resolvedPath !== "undefined"
-          } else {
-            const resolvedPath = resolve(ruleName, result, atRule, fixValue, absoluteCurrentFile)
-            shouldFix = typeof resolvedPath !== "undefined"
-          }
+          const resolvedPath = resolve(absoluteBasePath, absoluteCurrentPath, alias, fixValue)
+          shouldFix = resolvedPath !== null
 
           if (shouldFix) {
             atRule.params = `"${fixValue}"`
@@ -75,17 +70,16 @@ const plugin: Plugin = (enabled: any, options: RuleOptions, context: any = null)
           message
         })
       }
-
-
+      
       if (currentLayerName === importLayerName && currentModuleName === importModuleName) {
-
+        
         if (importPath.startsWith("~/")) {
           complain(messages.useRelativeImports({ importPath, moduleName: currentModuleName }), tildeToRelative(absoluteBasePath, absoluteCurrentPath, importPath))
         }
-
+        
         return
       }
-
+      
       if (!importPath.startsWith("~/")) {
         complain(messages.useTildeImports({ importPath, importLayerName, currentLayerName }), relativeToTilde(absoluteBasePath, absoluteCurrentPath, importPath))
       }
