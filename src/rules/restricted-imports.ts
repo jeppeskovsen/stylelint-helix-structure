@@ -8,6 +8,9 @@ const ruleToCheckAgainst = "restricted-imports"
 export const ruleName = namespace(ruleToCheckAgainst)
 
 export const messages = stylelint.utils.ruleMessages(ruleName, {
+  noUnresolvedImports({ importPath }) {
+    return `Could not resolve path '${importPath}'.`
+  },
   featureIntoFeature({ importPath }) {
     return `Unexpected path '${importPath}'. Cannot import Feature into another Feature.`
   },
@@ -48,6 +51,14 @@ const plugin: Plugin = (enabled: any, options: RuleOptions) => {
       if (!absoluteCurrentFile) return
 
       const absoluteImportFile = resolve(ruleName, result, atRule, importPath, absoluteCurrentFile)
+      if (!absoluteImportFile) {
+        stylelint.utils.report({
+          ruleName,
+          result,
+          node: atRule,
+          message: messages.noUnresolvedImports({ importPath })
+        })
+      }
 
       const [currentLayerName, currentModuleName] = getLayerAndModuleName(absoluteCurrentFile, absoluteBasePath)
       if (!currentLayerName || !currentModuleName) return

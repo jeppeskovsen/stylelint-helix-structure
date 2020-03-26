@@ -89,5 +89,15 @@ testRule({
       line: 1,
       column: 1
     },
+    {
+      code: `@import "../../foundation/NotExists"`,
+      codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
+      description: "Should not work",
+      message: messages.noUnresolvedImports({ 
+        importPath: "../../foundation/NotExists"
+      }),
+      line: 1,
+      column: 1
+    }
   ]
 })
