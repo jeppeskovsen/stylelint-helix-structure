@@ -1,6 +1,6 @@
 {
   "name": "stylelint-scss-helix-structure",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Stylelint rules for helix structure",
   "main": "lib/index.js",
   "scripts": {
@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/jeppeskovsen/stylelint-scss-helix-structure#readme",
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
+    "@babel/cli": "^7.14.8",
     "@babel/core": "^7.8.7",
     "@babel/preset-env": "^7.8.7",
     "@babel/preset-typescript": "^7.8.3",
@@ -42,6 +42,6 @@
     "crypto": "^1.0.1",
     "debug": "^4.1.1",
     "lodash": "^4.17.15",
-    "stylelint": "^13.2.1"
+    "stylelint": "^13.13.1"
   }
 }
