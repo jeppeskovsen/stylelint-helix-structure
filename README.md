@@ -2,7 +2,7 @@
 
 Install via npm:
 ```
-npm install styleint-scss-helix-structure --save-dev
+npm install stylelint-scss-helix-structure --save-dev
 ```
 
 .stylelintrc:

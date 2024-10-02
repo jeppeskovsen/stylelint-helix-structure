@@ -1,50 +1,69 @@
-import path from "path"
-import stylelint, { Plugin } from "stylelint"
-import { namespace } from "../utils/namespace"
+import path from "node:path"
+import stylelint, { type Rule } from "stylelint"
 import { getLayerAndModuleName } from "../utils/helix"
-import { resolve, getAbsolutePath } from "../utils/path-fixer"
+import { resolve } from '../utils/path-fixer'
+import { namespace } from "../utils/namespace"
 
-const ruleToCheckAgainst = "restricted-imports"
-export const ruleName = namespace(ruleToCheckAgainst)
+export const ruleName = "restricted-imports"
 
-export const messages = stylelint.utils.ruleMessages(ruleName, {
-  noUnresolvedImports({ importPath, absolutePath }) {
-    return `Could not resolve path '${importPath}'. Absolute path '${absolutePath}'`
-  },
-  featureIntoFeature({ importPath }) {
-    return `Unexpected path '${importPath}'. Cannot import Feature into another Feature.`
-  },
-  projectIntoFeature({ importPath }) {
-    return `Unexpected path '${importPath}'. Cannot import Project into a Feature.`
-  },
-  featureIntoFoundation({ importPath }) {
-    return `Unexpected path '${importPath}'. Cannot import Feature into Foundation.`
-  },
-  projectIntoFoundation({ importPath }) {
-    return `Unexpected path '${importPath}'. Cannot import Project into Foundation.`
-  },
-  projectIntoProject({ importPath }) {
-    return `Unexpected path '${importPath}'. Cannot import Project into another Project.`
-  }
-})
-
-interface RuleOptions {
-  basePath?: string
-  alias?: {[key: string]: string}
+type MessageData = {
+  importPath?: string
+  absolutePath?: string
 }
 
-const plugin: Plugin = (enabled: any, options: RuleOptions) => {
-  if (!enabled) {
-    return
+const messagesObject = {
+  noUnresolvedImports({ importPath, absolutePath }: MessageData) {
+    return `Could not resolve path '${importPath}'. Absolute path '${absolutePath}'`
+  },
+  featureIntoFeature({ importPath }: MessageData) {
+    return `Unexpected path '${importPath}'. Cannot import Feature into another Feature.`
+  },
+  projectIntoFeature({ importPath }: MessageData) {
+    return `Unexpected path '${importPath}'. Cannot import Project into a Feature.`
+  },
+  featureIntoFoundation({ importPath }: MessageData) {
+    return `Unexpected path '${importPath}'. Cannot import Feature into Foundation.`
+  },
+  projectIntoFoundation({ importPath }: MessageData) {
+    return `Unexpected path '${importPath}'. Cannot import Project into Foundation.`
+  },
+  projectIntoProject({ importPath }: MessageData) {
+    return `Unexpected path '${importPath}'. Cannot import Project into another Project.`
   }
+}
 
+export const messages = stylelint.utils.ruleMessages<any, typeof messagesObject>(ruleName, messagesObject)
+
+const meta = {
+  url: "https://github.com/jeppeskovsen/stylelint-scss-helix-structure/blob/master/README.md"
+}
+
+type RuleOptions = {
+  basePath?: string
+  alias?: Record<string, string>
+}
+
+const ruleFunction: Rule = (enabled: boolean, options: RuleOptions, context) => {
   return (root, result) => {
+    if (!enabled) {
+      return
+    }
+
+    // const validOptions = validateOptions(result, ruleName, {
+    //   actual: primary,
+    //   possible: [true]
+    // })
+
+    // if (!validOptions) {
+    //   return
+    // }
+
     options = options || {}
 
     const basePath = options.basePath || path.join(process.cwd(), "./src")
     const absoluteBasePath = path.resolve(basePath)
 
-    function checkForImportStatement(atRule) {
+    root.walkRules((atRule: any) => {
       if (atRule.name !== "import") return
 
       const importPath = atRule.params.replace(/'|"/g, "")
@@ -113,10 +132,12 @@ const plugin: Plugin = (enabled: any, options: RuleOptions) => {
           message: messages.projectIntoProject({ importPath })
         })
       }
-    }
-
-    root.walkAtRules(checkForImportStatement)
+    })
   }
 }
 
-export default plugin
+ruleFunction.ruleName = ruleName
+ruleFunction.messages = messages as any
+ruleFunction.meta = meta
+
+export default stylelint.createPlugin(namespace(ruleName), ruleFunction)

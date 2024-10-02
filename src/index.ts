@@ -1,11 +1,4 @@
-import { createPlugin } from "stylelint"
-import { namespace } from "./utils/namespace"
+import restrictedImports from "./rules/restricted-imports.rule"
+import restrictedTildeImports from "./rules/restricted-tilde-imports.rule"
 
-const rules = {
-  "restricted-imports": require("./rules/restricted-imports").default,
-  "restricted-tilde-imports": require("./rules/restricted-tilde-imports").default
-}
-
-export default Object.keys(rules).map(ruleName => {
-  return createPlugin(namespace(ruleName), rules[ruleName]);
-})
+export default [restrictedImports, restrictedTildeImports]

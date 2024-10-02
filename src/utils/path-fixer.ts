@@ -47,7 +47,7 @@ export function getAbsolutePath(absoluteBasePath: string, absoluteCurrentPath: s
   return path.normalize(absolutePath)
 }
 
-export function resolveAliasPath(absoluteBasePath: string, alias: {[key: string]: string}, pathToResolve: string): string {
+export function resolveAliasPath(absoluteBasePath: string, alias: Record<string, string> | undefined, pathToResolve: string): string | null {
   if (!alias) {
     return null
   }
@@ -66,7 +66,7 @@ export function resolveAliasPath(absoluteBasePath: string, alias: {[key: string]
   return null
 }
 
-export function resolve(absoluteBasePath: string, absoluteCurrentPath: string, alias: {[key: string]: string}, pathToResolve: string): { path: string, found: boolean } {
+export function resolve(absoluteBasePath: string, absoluteCurrentPath: string, alias: Record<string, string> | undefined, pathToResolve: string): { path: string, found: boolean } {
   let resolvedPath = resolveAliasPath(absoluteBasePath, alias, pathToResolve)
   if (!resolvedPath) {
     resolvedPath = getAbsolutePath(absoluteBasePath, absoluteCurrentPath, pathToResolve)

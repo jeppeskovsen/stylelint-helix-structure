@@ -2,19 +2,24 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "es2016",
-    "noImplicitAny": false,
+    "strict": true,
+    "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "noEmit": true,
+    "noEmit": false,
     "sourceMap": false,
     "esModuleInterop": true,
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "skipLibCheck": true,
+    "baseUrl": "src",
+    "outDir": "./lib"
   },
   "include": [
-    "src/**/*"
+    "src"
   ],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "**/*.test.ts"
   ]
 }

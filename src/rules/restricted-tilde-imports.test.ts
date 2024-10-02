@@ -1,5 +1,5 @@
-import { testRule } from "../utils/testing"
-import { ruleName, messages } from "./restricted-tilde-imports"
+import { testRule } from "stylelint-test-rule-node";
+import { ruleName, messages } from "./restricted-tilde-imports.rule"
 
 testRule({
   ruleName,
@@ -7,7 +7,6 @@ testRule({
     basePath: "./tests/files",
   }],
   fix: true,
-  
   accept: [
     {
       code: `@import "~/foundation/BaseBanner"`,

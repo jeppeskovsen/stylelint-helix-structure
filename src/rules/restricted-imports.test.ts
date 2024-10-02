@@ -1,11 +1,10 @@
-import path from "path"
-import { testRule } from "../utils/testing"
-import { ruleName, messages } from "./restricted-imports"
+import path from "node:path"
+import { testRule } from "stylelint-test-rule-node";
+import { ruleName, messages } from "./restricted-imports.rule"
 
 testRule({
   ruleName,
   config: [true, { basePath: "./tests/files" }],
-  
   accept: [
     {
       code: `@import "../../foundation/BaseBanner"`,
