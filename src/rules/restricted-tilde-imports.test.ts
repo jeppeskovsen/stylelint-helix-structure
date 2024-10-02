@@ -1,5 +1,5 @@
 import { testRule } from "stylelint-test-rule-node";
-import { ruleName, messages } from "./restricted-tilde-imports.rule"
+import { ruleName, messages } from "./restricted-tilde-imports.rule.js"
 
 testRule({
   ruleName,

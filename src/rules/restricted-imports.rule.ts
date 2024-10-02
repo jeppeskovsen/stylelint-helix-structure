@@ -1,10 +1,11 @@
 import path from "node:path"
 import stylelint, { type Rule } from "stylelint"
-import { getLayerAndModuleName } from "../utils/helix"
-import { resolve } from '../utils/path-fixer'
-import { namespace } from "../utils/namespace"
+import { getLayerAndModuleName } from "../utils/helix.js"
+import { resolve } from '../utils/path-fixer.js'
+import { namespace } from "../utils/namespace.js"
 
-export const ruleName = "restricted-imports"
+const shortName = "restricted-imports"
+export const ruleName = namespace(shortName)
 
 type MessageData = {
   importPath?: string
@@ -63,30 +64,39 @@ const ruleFunction: Rule = (enabled: boolean, options: RuleOptions, context) => 
     const basePath = options.basePath || path.join(process.cwd(), "./src")
     const absoluteBasePath = path.resolve(basePath)
 
-    root.walkRules((atRule: any) => {
-      if (atRule.name !== "import") return
+    root.walkAtRules((atRule) => {
+      if (atRule.name !== "import") {
+        return
+      }
 
       const importPath = atRule.params.replace(/'|"/g, "")
-      const absoluteCurrentFile = atRule.source.input.file
-      if (!absoluteCurrentFile) return
+      const absoluteCurrentFile = atRule.source?.input.file
+      if (!absoluteCurrentFile) {
+        return
+      }
       
       const absoluteCurrentPath = path.dirname(absoluteCurrentFile)
       const { path: absoluteImportFile, found } = resolve(absoluteBasePath, absoluteCurrentPath, options.alias, importPath)
 
       if (!found) {
-        stylelint.utils.report({
-          ruleName,
-          result,
-          node: atRule,
-          message: messages.noUnresolvedImports({ importPath, absolutePath: absoluteImportFile })
-        })
+        return
+        // stylelint.utils.report({
+        //   ruleName,
+        //   result,
+        //   node: atRule,
+        //   message: messages.noUnresolvedImports({ importPath, absolutePath: absoluteImportFile })
+        // })
       }
 
       const [currentLayerName, currentModuleName] = getLayerAndModuleName(absoluteCurrentFile, absoluteBasePath)
-      if (!currentLayerName || !currentModuleName) return
+      if (!currentLayerName || !currentModuleName) {
+        return
+      }
 
       const [importLayerName, importModuleName] = getLayerAndModuleName(absoluteImportFile, absoluteBasePath)
-      if (!importLayerName || !importModuleName) return
+      if (!importLayerName || !importModuleName) {
+        return
+      }
 
       if (currentLayerName === "feature" && importLayerName === "feature" && currentModuleName !== importModuleName) {
         stylelint.utils.report({
@@ -140,4 +150,4 @@ ruleFunction.ruleName = ruleName
 ruleFunction.messages = messages as any
 ruleFunction.meta = meta
 
-export default stylelint.createPlugin(namespace(ruleName), ruleFunction)
+export default stylelint.createPlugin(ruleName, ruleFunction)

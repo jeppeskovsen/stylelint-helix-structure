@@ -1,6 +1,6 @@
 import path from "node:path"
 import { testRule } from "stylelint-test-rule-node";
-import { ruleName, messages } from "./restricted-imports.rule"
+import { ruleName, messages } from "./restricted-imports.rule.js"
 
 testRule({
   ruleName,
