@@ -36,8 +36,9 @@ type RuleOptions = {
 }
 
 const ruleFunction: Rule = (enabled: boolean, options: RuleOptions, context: any = null) => {
-  let shouldFix = context.fix && (!options || options.ignoreFix !== true)
 
+  let shouldFix = context.fix && (!options || options.ignoreFix !== true)
+  
   return (root, result) => {
     if (!enabled) {
       return
@@ -49,11 +50,7 @@ const ruleFunction: Rule = (enabled: boolean, options: RuleOptions, context: any
     const alias = options.alias || { "~": "./" }
     const absoluteBasePath = path.resolve(basePath)
 
-    root.walkAtRules((atRule) => {
-      if (atRule.name !== "import") {
-        return
-      }
-
+    root.walkAtRules("import", atRule => {
       const importPath = atRule.params.replace(/'|"/g, "")
       const absoluteCurrentFile = atRule.source?.input.file
       if (!absoluteCurrentFile) {
@@ -76,7 +73,6 @@ const ruleFunction: Rule = (enabled: boolean, options: RuleOptions, context: any
       function complain(message: string, fixValue: string): void {
         if (shouldFix) {
           shouldFix = resolve(absoluteBasePath, absoluteCurrentPath, alias, fixValue).found
-
           if (shouldFix) {
             atRule.params = `"${fixValue}"`
             return
@@ -87,6 +83,8 @@ const ruleFunction: Rule = (enabled: boolean, options: RuleOptions, context: any
           ruleName,
           result,
           node: atRule,
+          index: 0,
+          endIndex: atRule.params.length,
           message
         })
       }

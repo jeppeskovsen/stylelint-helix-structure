@@ -1,24 +1,26 @@
-import { getLayerAndModuleName } from "./helix";
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { getLayerAndModuleName } from "./helix.js";
 
-describe("utils/helix tests", () => {
-  it("returns correct layer and module", () => {
+test("utils/helix tests", async (t) => {
+  await t.test("returns correct layer and module", async () => {
     const [layer, module] = getLayerAndModuleName("C:\\test\\src\\feature\\Banner", "C:\\test\\src")
     
-    expect(layer).toBe("feature");
-    expect(module).toBe("banner");
+    assert.equal(layer, "feature");
+    assert.equal(module, "banner");
   });
 
-  it("returns correct layer and module deep", () => {
+  await t.test("returns correct layer and module deep", async () => {
     const [layer, module] = getLayerAndModuleName("C:\\test\\src\\feature\\Banner\\subfolder\\subfolder\\subfolder\\subfolder", "C:\\test\\src")
     
-    expect(layer).toBe("feature");
-    expect(module).toBe("banner");
+    assert.equal(layer, "feature");
+    assert.equal(module, "banner");
   });
 
-  it("returns null without breaking", () => {
+  await t.test("returns null without breaking", async () => {
     const [layer, module] = getLayerAndModuleName("C:\\invalid path", "C\\invalid")
 
-    expect(layer).toBe(null);
-    expect(module).toBe(null);
+    assert.equal(layer, null);
+    assert.equal(module, null);
   });
 });

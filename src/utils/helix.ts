@@ -4,11 +4,14 @@ export function getLayerAndModuleName(absolutePath: string, absoluteBasePath: st
     return [null, null]
   }
 
-  if (absolutePath.startsWith(absoluteBasePath)) {
+  if (absolutePath.toLowerCase().startsWith(absoluteBasePath.toLowerCase())) {
     return absolutePath.substring(`${absoluteBasePath}\\`.length).split("\\").map(x => {
-      if (!x) return null;
+      if (!x) {
+        return null
+      }
+
       return x.toLowerCase()
-    }) as [string | null, string | null];
+    }) as [string | null, string | null]
   }
 
   return [null, null];

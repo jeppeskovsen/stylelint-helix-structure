@@ -1,6 +1,37 @@
 import path from "node:path"
 import fs from "node:fs"
 
+function getAbsolutePath(absoluteBasePath: string, absoluteCurrentPath: string, importPath: string): string {
+  let absolutePath: string
+
+  if (importPath.startsWith("~")) {
+    absolutePath = path.join(absoluteBasePath, importPath.substring(1))
+  } else {
+    absolutePath = path.resolve(absoluteCurrentPath, importPath)
+  }
+
+  return path.normalize(absolutePath)
+}
+
+function resolveAliasPath(absoluteBasePath: string, alias: Record<string, string> | undefined, pathToResolve: string): string | null {
+  if (!alias) {
+    return null
+  }
+
+  for (const key of Object.keys(alias)) {
+    if (pathToResolve.startsWith(key)) {
+      let aliasPath = alias[key]
+      if (!path.isAbsolute(aliasPath)) {
+        aliasPath = path.join(absoluteBasePath, aliasPath)
+      }
+
+      return path.join(aliasPath, pathToResolve.substring(key.length))
+    }
+  }
+
+  return null
+}
+
 export function relativeToTilde(absoluteBasePath: string, absoluteCurrentPath: string, importPath: string): string {
   if (importPath.startsWith("~")) {
     return importPath
@@ -33,37 +64,6 @@ export function tildeToRelative(absoluteBasePath: string, absoluteCurrentPath: s
   }
 
   return `./${relativePath}`
-}
-
-export function getAbsolutePath(absoluteBasePath: string, absoluteCurrentPath: string, importPath: string): string {
-  let absolutePath: string
-
-  if (importPath.startsWith("~")) {
-    absolutePath = path.join(absoluteBasePath, importPath.substring(1))
-  } else {
-    absolutePath = path.resolve(absoluteCurrentPath, importPath)
-  }
-
-  return path.normalize(absolutePath)
-}
-
-export function resolveAliasPath(absoluteBasePath: string, alias: Record<string, string> | undefined, pathToResolve: string): string | null {
-  if (!alias) {
-    return null
-  }
-
-  for (const key of Object.keys(alias)) {
-    if (pathToResolve.startsWith(key)) {
-      let aliasPath = alias[key]
-      if (!path.isAbsolute(aliasPath)) {
-        aliasPath = path.join(absoluteBasePath, aliasPath)
-      }
-
-      return path.join(aliasPath, pathToResolve.substring(key.length))
-    }
-  }
-
-  return null
 }
 
 export function resolve(absoluteBasePath: string, absoluteCurrentPath: string, alias: Record<string, string> | undefined, pathToResolve: string): { path: string, found: boolean } {

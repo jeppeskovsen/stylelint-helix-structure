@@ -1,9 +1,9 @@
-import path from "node:path"
 import { testRule } from "stylelint-test-rule-node";
-import { ruleName, messages } from "./restricted-imports.rule.js"
+import plugin, { ruleName, messages } from "./restricted-imports.rule.js"
 
 testRule({
   ruleName,
+  plugins: [plugin],
   config: [true, { basePath: "./tests/files" }],
   accept: [
     {
@@ -85,17 +85,6 @@ testRule({
       description: "Import from another project",
       message: messages.projectIntoProject({ 
         importPath: "../../project/Other"
-      }),
-      line: 1,
-      column: 1
-    },
-    {
-      code: `@import "../../foundation/NotExists"`,
-      codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
-      description: "Import non existing file",
-      message: messages.noUnresolvedImports({ 
-        importPath: "../../foundation/NotExists",
-        absolutePath: path.resolve(__dirname, "../../", "tests/files/foundation/NotExists")
       }),
       line: 1,
       column: 1

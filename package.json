@@ -1,15 +1,14 @@
 {
   "name": "stylelint-scss-helix-structure",
-  "version": "3.0.6",
+  "version": "3.1.0",
   "description": "Stylelint rules for helix structure",
   "main": "lib/index.js",
   "type": "module",
   "scripts": {
     "prebuild": "rimraf lib",
-    "pretest": "npm run build",
-    "test": "node --test",
+    "test": "node --loader ts-node/esm ./run-tests.ts",
     "build": "tsc",
-    "release": "npm run typecheck && npm run build && npm publish",
+    "release": "npm run typecheck && npm run build && npm test && npm publish",
     "typecheck": "tsc --noEmit"
   },
   "repository": {
@@ -25,11 +24,13 @@
   "devDependencies": {
     "rimraf": "^6.0.1",
     "stylelint-test-rule-node": "^0.3.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
   },
   "dependencies": {
     "@types/lodash": "^4.17.9",
     "@types/node": "^22.7.4",
+    "glob": "^11.0.0",
     "lodash": "^4.17.21",
     "stylelint": "^16.9.0"
   }

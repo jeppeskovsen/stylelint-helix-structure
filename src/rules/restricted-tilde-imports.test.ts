@@ -1,8 +1,9 @@
 import { testRule } from "stylelint-test-rule-node";
-import { ruleName, messages } from "./restricted-tilde-imports.rule.js"
+import plugin, { ruleName, messages } from "./restricted-tilde-imports.rule.js"
 
 testRule({
   ruleName,
+  plugins: [plugin],
   config: [true, { 
     basePath: "./tests/files",
   }],
@@ -48,6 +49,7 @@ testRule({
     },
 
     {
+      unfixable: true,
       code: `@import "~/feature/AwesomeBanner/NotExist"`,
       fixed: `@import "~/feature/AwesomeBanner/NotExist"`,
       codeFilename: "./tests/files/feature/AwesomeBanner/index.scss",
@@ -60,6 +62,7 @@ testRule({
       column: 1
     },
     {
+      unfixable: true,
       code: `@import "../../foundation/NotExist"`,
       fixed: `@import "../../foundation/NotExist"`,
       codeFilename: "./tests/files/feature/SuperBanner/index.scss",

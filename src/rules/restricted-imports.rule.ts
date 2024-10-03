@@ -13,9 +13,6 @@ type MessageData = {
 }
 
 const messagesObject = {
-  noUnresolvedImports({ importPath, absolutePath }: MessageData) {
-    return `Could not resolve path '${importPath}'. Absolute path '${absolutePath}'`
-  },
   featureIntoFeature({ importPath }: MessageData) {
     return `Unexpected path '${importPath}'. Cannot import Feature into another Feature.`
   },
@@ -64,9 +61,17 @@ const ruleFunction: Rule = (enabled: boolean, options: RuleOptions, context) => 
     const basePath = options.basePath || path.join(process.cwd(), "./src")
     const absoluteBasePath = path.resolve(basePath)
 
-    root.walkAtRules((atRule) => {
-      if (atRule.name !== "import") {
-        return
+    root.walkAtRules("import", atRule => {
+      
+      const complain = (message: string) => {
+        stylelint.utils.report({
+          ruleName,
+          result,
+          node: atRule,
+          index: 0,
+          endIndex: atRule.params.length,
+          message
+        })
       }
 
       const importPath = atRule.params.replace(/'|"/g, "")
@@ -77,15 +82,8 @@ const ruleFunction: Rule = (enabled: boolean, options: RuleOptions, context) => 
       
       const absoluteCurrentPath = path.dirname(absoluteCurrentFile)
       const { path: absoluteImportFile, found } = resolve(absoluteBasePath, absoluteCurrentPath, options.alias, importPath)
-
       if (!found) {
         return
-        // stylelint.utils.report({
-        //   ruleName,
-        //   result,
-        //   node: atRule,
-        //   message: messages.noUnresolvedImports({ importPath, absolutePath: absoluteImportFile })
-        // })
       }
 
       const [currentLayerName, currentModuleName] = getLayerAndModuleName(absoluteCurrentFile, absoluteBasePath)
@@ -99,48 +97,23 @@ const ruleFunction: Rule = (enabled: boolean, options: RuleOptions, context) => 
       }
 
       if (currentLayerName === "feature" && importLayerName === "feature" && currentModuleName !== importModuleName) {
-        stylelint.utils.report({
-          ruleName,
-          result,
-          node: atRule,
-          message: messages.featureIntoFeature({ importPath })
-        })
+        complain(messages.featureIntoFeature({ importPath }))
       }
 
       if (currentLayerName === "feature" && importLayerName === "project") {
-        stylelint.utils.report({
-          ruleName,
-          result,
-          node: atRule,
-          message: messages.projectIntoFeature({ importPath })
-        })
+        complain(messages.projectIntoFeature({ importPath }))
       }
 
       if (currentLayerName === "foundation" && importLayerName === "feature") {
-        stylelint.utils.report({
-          ruleName,
-          result,
-          node: atRule,
-          message: messages.featureIntoFoundation({ importPath })
-        })
+        complain(messages.featureIntoFoundation({ importPath }))
       }
 
       if (currentLayerName === "foundation" && importLayerName === "project") {
-        stylelint.utils.report({
-          ruleName,
-          result,
-          node: atRule,
-          message: messages.projectIntoFoundation({ importPath })
-        })
+        complain(messages.projectIntoFoundation({ importPath }))
       }
 
       if (currentLayerName === "project" && importLayerName === "project" && currentModuleName !== importModuleName) {
-        stylelint.utils.report({
-          ruleName,
-          result,
-          node: atRule,
-          message: messages.projectIntoProject({ importPath })
-        })
+        complain(messages.projectIntoProject({ importPath }))
       }
     })
   }

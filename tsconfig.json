@@ -13,14 +13,14 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "baseUrl": "src",
-    "outDir": "./lib"
+    "outDir": "./lib",
+    "types": ["node"]
   },
   "include": [
     "src"
   ],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts",
     "**/*.test.ts"
   ]
 }
